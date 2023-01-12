@@ -3,8 +3,9 @@ import cv2
 import matplotlib.pyplot as plt
 from TauLidarCommon.frame import FrameType, Frame
 from TauLidarCamera.camera import Camera
-from TauLidarCommon.d3 import ImageColorizer
+from TauLidarCommon.d3 import ImageColorizer, _PointDistanceMasked
 import math
+import array
 
 def setup(serialPort=None):
     port = None
@@ -23,7 +24,7 @@ def setup(serialPort=None):
 
         camera = Camera.open(port)             ## Open the first available Tau Camera
         camera.setModulationChannel(0)             ## autoChannelEnabled: 0, channel: 0
-        camera.setIntegrationTime3d(0, 50)       ## set integration time 0: 1000
+        camera.setIntegrationTime3d(0, 2000)       ## set integration time 0: 1000
         camera.setMinimalAmplitude(0, 80)          ## set minimal amplitude 0: 80
 
         cameraInfo = camera.info()
@@ -71,6 +72,9 @@ def getDistanceMap(length):
 
 
 
+
+
+
 def run(camera):
     
     Scale = np.array(getDistanceMap(100)).astype(np.uint8)
@@ -92,8 +96,17 @@ def run(camera):
 
     scat = ax.scatter(x, y, z, marker='o')
     plt.draw()
+    mat_depth = None
+    img4 = None
 
+        #define the events for the
+    # mouse_click.
+    def mouse_click(event, x, y,flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
 
+            cv2.putText(img4,f"{mat_depth[int(y/4)][int(x/4)]}",(x,y),cv2.FONT_HERSHEY_SCRIPT_SIMPLEX,0.5,(255,255,255))
+            cv2.imshow('R Channel',img4)
+    cv2.setMouseCallback('RGB Channel', mouse_click)
     while True:
         frame = camera.readFrame(FrameType.DISTANCE_AMPLITUDE)
         
@@ -128,13 +141,16 @@ def run(camera):
             
             #plt.pause(0.1)  
 
-
-            
+            mat_depth = np.frombuffer(frame.data_depth, dtype=np.float32, count=-1, offset=0).reshape(frame.height, frame.width, 1)
+            #mat_depth = mat_depth.astype(np.uint8)
             mat_depth_rgb = np.frombuffer(frame.data_depth_rgb, dtype=np.uint16, count=-1, offset=0).reshape(frame.height, frame.width, 3)
-
+            
             mat_depth_rgb = mat_depth_rgb.astype(np.uint8)
             mat_amplitude = np.frombuffer(frame.data_amplitude, dtype=np.float32, count=-1, offset=0).reshape(frame.height, frame.width)
             mat_amplitude = mat_amplitude.astype(np.uint8)
+
+
+
             #print (mat_depth_rgb[:,:,0].shape)
 
             #Sin escalar, este mapa de profundidad sirve para dibujar cada voxel
@@ -142,15 +158,15 @@ def run(camera):
 
             # Upscalling the image
             upscale = 4
-            img1 =  cv2.resize(mat_depth_rgb[:,:,0], (frame.width*upscale, frame.height*upscale))
+            img1 =  cv2.resize(mat_depth, (frame.width*upscale, frame.height*upscale))
             img2 =  cv2.resize(mat_depth_rgb[:,:,1], (frame.width*upscale, frame.height*upscale))
             img3 =  cv2.resize(mat_depth_rgb[:,:,2], (frame.width*upscale, frame.height*upscale))
             img4 =  cv2.resize(mat_depth_rgb[:,:,:], (frame.width*upscale, frame.height*upscale))
             amplitude_img =  cv2.resize(mat_amplitude, (frame.width*upscale, frame.height*upscale))
 
-            cv2.imshow('R Channel', img1)
-            cv2.imshow('G Channel', img2)
-            cv2.imshow('B Channel', img3)
+            #cv2.imshow('R Channel', img1)
+            #cv2.imshow('G Channel', img2)
+            #cv2.imshow('B Channel', img3)
             cv2.imshow('RGB Channel', img4)
             cv2.imshow('Amplitude', amplitude_img)
 

@@ -4,6 +4,8 @@ from TauLidarCamera.camera import Camera
 from TauLidarCommon.d3 import ImageColorizer
 import math
 import cv2
+import lidar_to_file as lf
+import datetime
 
 def setup(serialPort=None):
     port = None
@@ -61,6 +63,7 @@ def nextFrame(camera):
         print ("waiting frame")
     if frame:
         space = frame.points_3d
+        lf.save_coords(space,f"snapshot_{datetime.datetime.now().date()}")
         x = []
         y = []
         z = []   
@@ -88,6 +91,7 @@ def nextFrame(camera):
         cv2.imshow("R Channel",img4)
         if cv2.waitKey(1) == 27:
             cv2.destroyAllWindows()
+        
         return [x,y,z,rgb,frame.data_depth_rgb,frame.height,frame.width]
         
 
@@ -123,3 +127,16 @@ def run(camera):
 def cleanup(camera):
     print('\nShutting down ...')
     camera.close()
+
+if __name__ == "__main__":
+    port = "COM5"
+
+    camera = setup(port)
+
+    if camera:
+        try:
+            nextFrame(camera)
+        except Exception as e:
+            print(e)
+
+        cleanup(camera)
