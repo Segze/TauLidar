@@ -2,6 +2,7 @@ import numpy as np
 import csv
 import os
 
+
 def save_coords(coordinates: list, file: str):
     #coordinates must be in type [(x1,y1,z1,r1,g1,2),(x2,y2,z2,r2,g2,b2)]
     #RGB is optional
@@ -56,3 +57,7 @@ def open_raw(file: str, type: str):
             raw.append(i)
     return raw
 
+def append_raw(file: str, offset: list):
+    #TODO: hacer un formato de guardado que permita introducir un desfase en las coordenadas
+    # (definiendo el punto 0,0 como otro) y en el tiempo
+    pass
