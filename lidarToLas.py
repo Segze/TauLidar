@@ -2,7 +2,7 @@ from TauLidarCommon.frame import FrameType, Frame
 from TauLidarCamera.camera import Camera
 from TauLidarCommon.d3 import ImageColorizer
 import numpy as np
-import laspy
+import lidar_to_file as lf
 
 def setup(serialPort=None):
     port = None
@@ -22,7 +22,7 @@ def setup(serialPort=None):
         camera = Camera.open(port)             ## Open the first available Tau Camera
         camera.setModulationChannel(0)             ## autoChannelEnabled: 0, channel: 0
         camera.setIntegrationTime3d(0, 1000)       ## set integration time 0: 1000
-        camera.setMinimalAmplitude(0, 10)          ## set minimal amplitude 0: 80
+        camera.setMinimalAmplitude(0, 40)          ## set minimal amplitude 0: 80
 
         cameraInfo = camera.info()
 
@@ -53,66 +53,26 @@ def getDistanceMap(length):
 
 def run(camera):
     camera.setRange(0,4500)
+    info  = camera.info()
+    integrationTime3d = 1000
+    integrationTimeGrayscale = 0
+    minimalAmplitude = 10
+
     x = []
     y = []
     z = []
     for i in range (0,1):
         frame = camera.readFrame(FrameType.DISTANCE_AMPLITUDE)
         if frame:
-            # #one dimensional array of float32
-            # frame.data_depth
-            # #one dimensional array of uint16
-            # frame.data_amplitude
-            # #three dimensional array fo uint8
-            # frame.data_depth_rgb
-            # #list of points in format [X,Y,Z,R,G,B]
-            # #RGB: list of rgb values based on the bounds set by Camera.setRange(Z1,Z2)
-            # frame.points_3d
-            #header
-            header = laspy.header.LasHeader(version="1.4", point_format=6)
-            header.file_source_id = 0
-            header.uuid = None
-            #Nombre del hardware
-            header.system_identifier = "Onion Tau"
-            #Nombre del programa
-            header.generating_software = "Tau Point Cloud To LAS"
-            #Fecha de creacion
-            #header.creation_date = date.today()
-            #TODO: end this conversion
+            space = frame.points_3d
 
-            FileSignature = "LASF"
-            FileSourceId = 0
-
-
-            #int32
-            X = 0
-            Y = 0
-            Z = 0
-            #uint16
-            intensity = 0
-            #3 bits, 3 bits, 1 bit, 1 bit (byte)
-            #return number = 000 (number of return of the light pulse)
-            #number of returns = 000 (total number of returns of the laser)
-            #scan direction = 1 (the lidar was moving from left to right)
-            #edge of flight (depends on the point, if it was at the end of the scan, the border of the image)
-            info = 0
-            #unsigned char
-            classification = 0
-            #signed char
-            #angle at which ray was sent (including angle of the lidar itself), [-90,90], nadir being zero
-            angle = 0
-            #char
-            user_data = 0
-            #uint16
-            point_data = 0
-
-
+            lf.saveToLaz(frame,camera,"test_file",integrationTime3d,integrationTimeGrayscale,minimalAmplitude)
             mat_depth_rgb = np.frombuffer(frame.data_depth_rgb, dtype=np.uint16, count=-1, offset=0).reshape(frame.height, frame.width, 3)
             mat_depth_rgb = mat_depth_rgb.astype(np.uint8)
 
             mat_amplitude = np.frombuffer(frame.data_amplitude, dtype=np.float32, count=-1, offset=0).reshape(frame.height, frame.width)
             mat_amplitude = mat_amplitude.astype(np.uint8)
-            space = frame.points_3d
+            
             x = []
             y = []
             z = []   
@@ -127,3 +87,14 @@ def run(camera):
                 g = arr[4]/255
                 b = arr[5]/255
                 rgb.append((r,g,b))
+
+if __name__ == "__main__":
+    port = "COM5"
+
+    camera = setup(port)
+
+    if camera:
+        try:
+            run(camera)
+        except Exception as e:
+            print(e)

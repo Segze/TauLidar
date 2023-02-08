@@ -24,8 +24,8 @@ def setup(serialPort=None):
 
         camera = Camera.open(port)             ## Open the first available Tau Camera
         camera.setModulationChannel(0)             ## autoChannelEnabled: 0, channel: 0
-        camera.setIntegrationTime3d(0, 2000)       ## set integration time 0: 1000
-        camera.setMinimalAmplitude(0, 80)          ## set minimal amplitude 0: 80
+        camera.setIntegrationTime3d(0, 500)       ## set integration time 0: 1000
+        camera.setMinimalAmplitude(0, 10)          ## set minimal amplitude 0: 80
 
         cameraInfo = camera.info()
 
@@ -46,11 +46,12 @@ def setup(serialPort=None):
         cv2.namedWindow('Scale')
 
 
-        cv2.moveWindow('R Channel', 20, 20)
+        cv2.moveWindow('B Channel', 20, 20)
         cv2.moveWindow('RGB Channel', 1000, 20)
         cv2.moveWindow('B Channel', 20, 360)
         cv2.moveWindow('G Channel', 1000, 360)
-        cv2.moveWindow('Scale', 500, 500)
+        cv2.moveWindow('Scale', 700, 50)
+        cv2.moveWindow('Amplitude', 20, 700)
 
 
     return camera

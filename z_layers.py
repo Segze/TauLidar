@@ -30,8 +30,8 @@ def setup(serialPort=None):
         camera.setModulationChannel(0)             ## autoChannelEnabled: 0, channel: 0
         camera.setIntegrationTime3d(0, 1000)       ## set integration time 0: 1000
         camera.setMinimalAmplitude(0, 40)          ## set minimal amplitude 0: 80
-
         cameraInfo = camera.info()
+        camera.setDefaultParameters()
 
         print("\nToF camera opened successfully:")
         print("    model:      %s" % cameraInfo.model)
@@ -54,8 +54,8 @@ def setup(serialPort=None):
         cv2.moveWindow('RGB Channel', 1000, 20)
         cv2.moveWindow('B Channel', 20, 360)
         cv2.moveWindow('G Channel', 1000, 360)
-        cv2.moveWindow('Scale', 1000, 500)
-        cv2.moveWindow('Amplitude', 1000, 100)
+        cv2.moveWindow('Scale', 700, 50)
+        cv2.moveWindow('Amplitude', 20, 700)
 
 
     return camera
