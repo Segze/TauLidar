@@ -6,6 +6,8 @@ from TauLidarCommon.frame import Frame
 import laspy
 import datetime
 import gps_time
+# save numpy array as npy file
+import numpy
 
 
 def save_coords(coordinates: list, file: str):
@@ -48,26 +50,21 @@ def get_coords(file: str):
             )
     return coords
 
-def save_raw(data: list,file: str):
-     if (not os.path.exists(f"./{file}.csv")):
-        with open(f"{file}", 'wb') as f:
-            for byte in data:
-                f.write(byte)
-def open_raw(file: str, type: str):
-    raw = []
-    if type == "DISTANCE":
-        with open(f"{file}", 'rb') as f:
-            p = f.read(2)
-            i = int.from_bytes(p,"big")
-            raw.append(i)
-    return raw
 
-def append_raw(file: str, offset: list):
-    #TODO: hacer un formato de guardado que permita introducir un desfase en las coordenadas
-    # (definiendo el punto 0,0 como otro) y en el tiempo
-    pass
-
-
+#Guarda los datos del lidar en bruto en un archivo binario
+def save_raw(data: list,file: str, metadata:dict = {}):
+    if (not os.path.exists(f"{file}")):
+        numpydata = numpy.asarray(data)
+        numpy.save(file,numpydata)
+    if (metadata):
+        numpydata=numpy.asarray([metadata])
+        numpy.save(f"{file}.meta",numpydata,allow_pickle=True)
+#Lee los datos binarios
+def open_raw(file: str):
+    raw = bytearray(list(numpy.load(file=file,allow_pickle=False)))
+    meta = numpy.load(file=f"{file}.meta.npy",allow_pickle=True)
+    metadata = dict(list(meta)[0])
+    return raw, metadata
 
 def saveToLaz(frame: Frame,camera: Camera, filename: str,integrationTime3d = 0, integrationTimeGrayscale = 0, minimalAmplitude = 0):
     info = camera.info()
@@ -166,3 +163,4 @@ def saveToLaz(frame: Frame,camera: Camera, filename: str,integrationTime3d = 0, 
             point_record.point_source_id = [1]
             point_record.gps_time = [gps_time.GPSTime.from_datetime(datetime.datetime.now()).time_of_week]
             writer.write_points(point_record)
+

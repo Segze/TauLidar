@@ -3,6 +3,25 @@ import numpy as np
 from TauLidarCommon.frame import FrameType, Frame
 from TauLidarCamera.camera import Camera
 from TauLidarCommon.d3 import ImageColorizer, _PointDistanceMasked
+from time import time
+  
+#USO: @timer_func
+def timer_func(func):
+    # This function shows the execution time of 
+    # the function object passed
+    def wrap_func(*args, **kwargs):
+        t1 = time()
+        result = func(*args, **kwargs)
+        t2 = time()
+        print(f'Function {func.__name__!r} executed in {(t2-t1):.4f}s')
+        return result
+    return wrap_func
+  
+  
+
+
+
+
 
 #Constantes:
 #Esta mascara binaria remueve los bits de mayor valor (del orden de 2^15 mm), que parecen ser una incertidumbre razonable
@@ -65,3 +84,5 @@ def getDistanceMap(length):
     
     return colorRange
 
+def debug(msg):
+    print(f"{msg}")
